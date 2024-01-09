@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absen</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0; 
+        }
+
+        h2 {
+            color: #333;
+            font-size: 2em;
+            text-align: center;
+            margin-bottom: 20px; 
+        }
+        form {
+            margin-bottom: 20px;
+            text-align: center; 
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .logo img {
+            max-width: 100%;
+            display: auto;
+            margin: 0 auto; 
+        }
+
+        input {
+            padding: 10px;
+            width: 300px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            cursor: pointer;
+            width: 45%;
+            border-radius: 5px;
+            margin-right: 5px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transition: 0.3s;
+            color: #ffd700; 
+        }
+
+        footer {
+            text-align: center;
+            padding:5px 0;
+            background-color: #4CAF50;
+            color: #fff;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            font-style: italic;
+        }
+
+        footer p {
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: #fff;
+            font-weight: normal; 
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        @media only screen and (max-width: 600px) {
+            table, th, td {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<section class="pt.otto">
+    <div class="logo">
+        <img src="image/logo pt.png" alt="logo.pt">
+    </div>
+</section>
+
+<h2>Absen</h2>
+
+<form id="absensiForm">
+    <label for="nama">Nama Karyawan:</label>
+    <input type="text" id="nama" required>
+    <button type="button" onclick="absenMasuk()">Absen Masuk</button>
+    <button type="button" onclick="absenKeluar()">Absen Keluar</button>
+</form>
+
+<table id="rekapTable">
+    <thead>
+        <tr>
+            <th>Nama Karyawan</th>
+            <th>Absen Masuk</th>
+            <th>Absen Keluar</th>
+            <th>Total Jam Kerja</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
+
+<footer>
+    <p>&copy; 2024 Absensi PT.OTTO NUSANTARA ENERGY</p>
+</footer>
+
+<script>
+
+// Ambil data karyawan dari penyimpanan lokal saat halaman dimuat
+const karyawanList = JSON.parse(localStorage.getItem('karyawanList')) || [];
+
+// Periksa apakah tanggal telah berubah
+const lastUpdateDate = localStorage.getItem('lastUpdateDate');
+const currentDate = new Date().toLocaleDateString();
+if (lastUpdateDate !== currentDate) {
+    // Jika tanggal berubah, reset data dan simpan tanggal terbaru
+    localStorage.setItem('karyawanList', '[]');
+    localStorage.setItem('lastUpdateDate', currentDate);
+}
+
+function absenMasuk() {
+    const nama = document.getElementById('nama').value;
+    const karyawan = karyawanList.find(k => k.nama === nama);
+
+    if (karyawan) {
+        karyawan.absenMasuk.push(new Date());
+    } else {
+        const newKaryawan = {
+            nama: nama,
+            absenMasuk: [new Date()],
+            absenKeluar: [],
+        };
+        karyawanList.push(newKaryawan);
+    }
+
+    // Simpan data karyawan ke penyimpanan lokal
+    localStorage.setItem('karyawanList', JSON.stringify(karyawanList));
+    updateRekapTable();
+}
+
+function absenKeluar() {
+    const nama = document.getElementById('nama').value;
+    const karyawan = karyawanList.find(k => k.nama === nama);
+
+    if (karyawan) {
+        karyawan.absenKeluar.push(new Date());
+        // Simpan data karyawan ke penyimpanan lokal
+        localStorage.setItem('karyawanList', JSON.stringify(karyawanList));
+        updateRekapTable();
+    }
+}
+
+function updateRekapTable() {
+    const tableBody = document.querySelector('#rekapTable tbody');
+    tableBody.innerHTML = '';
+
+    // Hapus data yang lebih lama dari 1 hari
+    const now = new Date();
+    karyawanList.forEach(karyawan => {
+        const lastAbsen = karyawan.absenMasuk.length > 0 ? new Date(karyawan.absenMasuk[karyawan.absenMasuk.length - 1]) : null;
+        if (lastAbsen && (now - lastAbsen) < 24 * 60 * 60 * 1000) {
+            const totalJamKerja = hitungTotalJamKerja(karyawan.absenMasuk, karyawan.absenKeluar);
+            const row = `<tr>
+                            <td>${karyawan.nama}</td>
+                            <td>${formatTanggal(karyawan.absenMasuk[0])}</td>
+                            <td>${karyawan.absenKeluar.length > 0 ? formatTanggal(karyawan.absenKeluar[karyawan.absenKeluar.length - 1]) : '-'}</td>
+                            <td>${totalJamKerja.toFixed(2)} jam</td>
+                        </tr>`;
+            tableBody.innerHTML += row;
+        }
+    });
+
+    // Hapus data yang lebih lama dari 1 hari
+    cleanOldData();
+}
+
+function hitungTotalJamKerja(absenMasuk, absenKeluar) {
+    if (absenMasuk.length === 0 || absenKeluar.length === 0) {
+        return 0;
+    }
+
+    const masuk = new Date(absenMasuk[0]);
+    const keluar = new Date(absenKeluar[absenKeluar.length - 1]);
+    const diff = keluar.getTime() - masuk.getTime();
+
+    // Konversi selisih waktu dari milidetik ke jam
+    const totalJam = diff / (1000 * 60 * 60);
+    return totalJam;
+}
+
+function formatTanggal(date) {
+    const options = {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+    };
+    return new Intl.DateTimeFormat('en-US', options).format(new Date(date));
+}
+
+function cleanOldData() {
+    const now = new Date();
+    karyawanList.forEach(karyawan => {
+        // Filter absen yang lebih lama dari 1 hari
+        karyawan.absenMasuk = karyawan.absenMasuk.filter(date => (now - new Date(date)) < 24 * 60 * 60 * 1000);
+        karyawan.absenKeluar = karyawan.absenKeluar.filter(date => (now - new Date(date)) < 24 * 60 * 60 * 1000);
+    });
+    
+    // Simpan data karyawan yang telah dibersihkan ke penyimpanan lokal
+    localStorage.setItem('karyawanList', JSON.stringify(karyawanList));
+}
+
+// Panggil fungsi updateRekapTable saat halaman dimuat
+updateRekapTable();
+ 
+</script>
+
+</body>
+</html>
