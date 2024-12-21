@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Not Found!!!</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+    <div class="container vh-100 d-flex justify-content-center align-items-center">
+        <div class="position-fixed">
+            <button class="btn btn-primary custom-btn" onclick="start()">Klik Aku</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+    <script>
+        function start() {
+            Swal.fire({
+                title: 'Masukkan Nama',
+                input: 'text',
+                inputPlaceholder: 'Nama kamu...',
+                showCancelButton: true,
+                confirmButtonText: 'OK',
+                cancelButtonText: 'Batal',
+                preConfirm: (name) => {
+                    if (!name) {
+                        Swal.showValidationMessage('Nama tidak boleh kosong!');
+                    }
+                    return name;
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value.trim() !== '') {
+                    let name = result.value.trim();
+                    Swal.fire({
+                        title: `Hallo, ${name}...`,
+                        html: '"Selamat Hari Ibu! Terima kasih atas segala cinta, pengorbanan, dan kesabaran yang tak ternilai. Engkau adalah cahaya dalam hidup ku, pelindung yang tak tergantikan, dan yang menuntunku dalam setiap langkah untuk masa depanku. Semoga hari ini dipenuhi dengan cinta, kebahagiaan, dan kehangatan seperti yang selalu Ibu berikan kepada ku. Aku mencintaimu, Ibu, Semoga hal-hal baik menyertai mu :) ❤️"<br><br><b>Apakah suka dengan ini?</b>',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Iya',
+                        cancelButtonText: 'Tidak'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            let today = new Date().toLocaleDateString();
+                            Swal.fire({
+                                title: 'Terima Kasih ❤️❤️!',
+                                icon: 'success',
+                                confirmButtonText: 'Hadiah'
+                            }).then(() => {
+                                window.location.href = 'flower.html';
+                            });
+                        } else if (result.dismiss === Swal.DismissReason.cancel) {
+                            Swal.fire({
+                                title: 'Yah, kok gak suka :(',
+                                text: 'Maaf Ya ❤️',
+                                icon: 'error',
+                                confirmButtonText: 'Kembali'
+                            });
+                        }
+                    });
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    setTimeout(() => {
+                        Swal.fire({
+                            title: 'Kenapa hayo kok batal!',
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+                    }, 100);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
